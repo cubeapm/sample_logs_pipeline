@@ -1,0 +1,41 @@
+version: "3"
+services:
+  cubeapm:
+    image: cubeapm/cubeapm:v1.11.0
+    volumes:
+      - ./data_volume/cubeapm:/root/data
+      - ./config.properties:/root/config.properties
+    environment:
+      - CUBE_CONFIG_FILE=/root/config.properties
+    ports:
+      - 3125:3125
+    logging:
+      driver: fluentd
+      options:
+        tag: cubeapm
+    depends_on:
+      - fluent-bit
+
+  fluent-bit:
+    image: fluent/fluent-bit:3.2.2
+    volumes:
+      - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
+      - ./parsers_multiline.conf:/fluent-bit/etc/parsers_multiline.conf
+    ports:
+      - 24224:24224
+      - 24224:24224/udp
+
+  log-gen:
+    image: busybox:1.37.0
+    command:
+      [
+        "sh",
+        "-c",
+        "while true; do echo -n 'start '; for i in $(seq 1 8000); do echo -n 'mid '; done; echo end; echo new; sleep 1; done;",
+      ]
+    logging:
+      driver: fluentd
+      options:
+        tag: multiline
+    depends_on:
+      - fluent-bit
