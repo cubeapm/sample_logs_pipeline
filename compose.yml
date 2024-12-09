@@ -9,18 +9,12 @@ services:
       - CUBE_CONFIG_FILE=/root/config.properties
     ports:
       - 3125:3125
-    logging:
-      driver: fluentd
-      options:
-        tag: cubeapm
-    depends_on:
-      - fluent-bit
 
   fluent-bit:
     image: fluent/fluent-bit:3.2.2
     volumes:
       - ./fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf
-      - ./parsers_multiline.conf:/fluent-bit/etc/parsers_multiline.conf
+      - ./parsers.conf:/fluent-bit/etc/parsers.conf
     ports:
       - 24224:24224
       - 24224:24224/udp
@@ -31,11 +25,11 @@ services:
       [
         "sh",
         "-c",
-        "while true; do echo -n 'start '; for i in $(seq 1 8000); do echo -n 'mid '; done; echo end; echo new; sleep 1; done;",
+        "while true; do echo -n `date -Iseconds`; echo -n ' INFO start '; for i in $(seq 1 8000); do echo -n 'mid '; done; echo end; echo new; sleep 5; done;",
       ]
     logging:
       driver: fluentd
       options:
-        tag: multiline
+        tag: sample
     depends_on:
       - fluent-bit
